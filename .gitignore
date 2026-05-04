@@ -1,4 +1,5 @@
 .env
+saved_recipes.json
 __pycache__/
 *.pyc
-*.pkl
+data/
