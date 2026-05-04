@@ -1,0 +1,58 @@
+{
+  "none": {
+    "sugar": 10,
+    "fat": 20,
+    "sodium": 300,
+    "carbs": 50,
+    "cholesterol": 300
+  },
+  "diabetes": {
+    "sugar": 3,
+    "fat": 15,
+    "sodium": 200,
+    "carbs": 25,
+    "cholesterol": 200
+  },
+  "pcos": {
+    "sugar": 3,
+    "fat": 12,
+    "sodium": 180,
+    "carbs": 20,
+    "cholesterol": 150
+  },
+  "high bp": {
+    "sugar": 5,
+    "fat": 15,
+    "sodium": 100,
+    "carbs": 40,
+    "cholesterol": 200
+  },
+  "heart disease": {
+    "sugar": 2,
+    "fat": 5,
+    "sodium": 80,
+    "carbs": 15,
+    "cholesterol": 100
+  },
+  "kidney disease": {
+    "sugar": 5,
+    "fat": 10,
+    "sodium": 50,
+    "carbs": 30,
+    "cholesterol": 150
+  },
+  "obesity": {
+    "sugar": 2,
+    "fat": 8,
+    "sodium": 150,
+    "carbs": 20,
+    "cholesterol": 200
+  },
+  "jaundice": {
+    "sugar": 10,
+    "fat": 5,
+    "sodium": 200,
+    "carbs": 60,
+    "cholesterol": 50
+  }
+}

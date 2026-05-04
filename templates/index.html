@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareCook — AI Healthy Recipe Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🌿</span>
+      <span>CareCook</span>
+    </div>
+    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="generate" onclick="switchTab(this)">
+      <span class="nav-icon">🍳</span> Generate Recipe
+    </button>
+    <button class="nav-item" data-tab="saved" onclick="switchTab(this)">
+      <span class="nav-icon">🔖</span> Saved Recipes
+      <span class="nav-badge" id="savedBadge">0</span>
+    </button>
+    <button class="nav-item" data-tab="howit" onclick="switchTab(this)">
+      <span class="nav-icon">🤖</span> How It Works
+    </button>
+    <button class="nav-item" data-tab="thresholds" onclick="switchTab(this)">
+      <span class="nav-icon">📊</span> Safety Thresholds
+    </button>
+  </nav>
+
+  <div class="sidebar-conditions">
+    <div class="sidebar-section-label">Supported Conditions</div>
+    <div class="cond-tag">✅ Diabetes</div>
+    <div class="cond-tag">✅ PCOS / PCOD</div>
+    <div class="cond-tag">✅ High Blood Pressure</div>
+    <div class="cond-tag">✅ Heart Disease</div>
+    <div class="cond-tag">✅ Kidney Disease</div>
+    <div class="cond-tag">✅ Obesity</div>
+    <div class="cond-tag">✅ Jaundice</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-text">Built with Python · Flask · Llama-3 · scikit-learn</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ──────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-brand">
+      <span class="logo-icon sm">🌿</span>
+      <span class="topbar-title">CareCook</span>
+      <span class="topbar-badge">AI · ML · Llama-3</span>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="switchTab(document.querySelector('[data-tab=saved]'))" title="Saved recipes">
+        🔖 <span id="topSavedCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT AREA -->
+  <main class="content">
+
+    <!-- ══════════ TAB: GENERATE ══════════ -->
+    <section class="tab-pane active" id="tab-generate">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-inner">
+          <span class="hero-tag"><span class="pulse-dot"></span>Medically-aware recipe AI</span>
+          <h1>Cook <em>safely</em><br>for your health.</h1>
+          <p class="hero-sub">CareCook filters every ingredient through a dual-layer AI safety check — Random Forest ML + condition-specific thresholds — then generates personalized recipes with Llama-3.</p>
+          <div class="hero-stats">
+            <div class="stat"><span class="stat-num">3,000+</span><span class="stat-lbl">Ingredients trained</span></div>
+            <div class="stat"><span class="stat-num">8</span><span class="stat-lbl">Health conditions</span></div>
+            <div class="stat"><span class="stat-num">2-layer</span><span class="stat-lbl">AI safety check</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="form-section">
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-icon">🏥</span>
+            <div>
+              <div class="card-title">Your Health Profile</div>
+              <div class="card-sub">Tell us about your conditions so we can personalise the safety check</div>
+            </div>
+          </div>
+
+          <div class="profile-body">
+            <div class="profile-row">
+              <div class="profile-col">
+                <div class="profile-label">🩺 Health Condition</div>
+                <div class="cond-grid" id="condGrid">
+                  <button class="cond-btn active" data-cond="none">🙂 None</button>
+                  <button class="cond-btn" data-cond="diabetes">🩸 Diabetes</button>
+                  <button class="cond-btn" data-cond="pcos">💊 PCOS / PCOD</button>
+                  <button class="cond-btn" data-cond="high bp">❤️ High BP</button>
+                  <button class="cond-btn" data-cond="heart disease">🫀 Heart Disease</button>
+                  <button class="cond-btn" data-cond="kidney disease">🫘 Kidney Disease</button>
+                  <button class="cond-btn" data-cond="obesity">⚖️ Obesity</button>
+                  <button class="cond-btn" data-cond="jaundice">🟡 Jaundice</button>
+                </div>
+              </div>
+              <div class="profile-divider"></div>
+              <div class="profile-col narrow">
+                <div class="profile-label">⚠️ Food Allergies</div>
+                <input type="text" id="allergiesInput" placeholder="e.g. nuts, dairy, gluten">
+                <div class="profile-hint">Leave blank if none</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card form-card" style="margin-top:20px;">
+          <div class="card-header">
+            <span class="card-icon">🛒</span>
+            <div>
+              <div class="card-title">Ingredients & Preferences</div>
+              <div class="card-sub">Each ingredient will be checked against our ML model before cooking</div>
+            </div>
+          </div>
+
+          <div class="form-grid two-col">
+            <div class="field">
+              <label>🥕 Available Ingredients</label>
+              <input type="text" id="ingredientsInput" placeholder="e.g. onions, chicken, tomatoes, rice">
+            </div>
+            <div class="field">
+              <label>🚫 Dietary Constraints</label>
+              <input type="text" id="constraintsInput" placeholder="e.g. no oil, high protein, low carb">
+            </div>
+          </div>
+
+          <button class="btn-primary" id="findBtn" onclick="findDishes()">
+            <span class="btn-icon">🔍</span> Find Safe Dishes
+          </button>
+          <div class="progress-wrap" id="progressWrap" style="display:none;">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-label" id="progressLabel">Analysing ingredients...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsSection" style="display:none;">
+
+        <!-- Safety Check Results -->
+        <div class="section-header">
+          <h2>🔬 Ingredient Safety Check</h2>
+          <p class="section-sub" id="safetySubtitle"></p>
+        </div>
+
+        <div class="ing-grid" id="ingGrid"></div>
+
+        <!-- Removed ingredients -->
+        <div id="removedSection" style="display:none;">
+          <div class="warning-box" id="warningBox"></div>
+        </div>
+
+        <!-- Health Tips -->
+        <div class="tips-box" id="tipsBox" style="display:none;">
+          <div class="tips-label">💡 Dietary Advice</div>
+          <div id="tipsContent"></div>
+        </div>
+
+        <!-- Dish Cards -->
+        <div class="section-header" style="margin-top:48px;">
+          <h2>🍽️ Pick Your Safe Dish</h2>
+          <p class="section-sub">AI-verified safe for your health profile — click Cook to get the full recipe</p>
+        </div>
+        <div class="dishes-grid" id="dishesGrid"></div>
+      </div>
+
+      <!-- Recipe Section -->
+      <div id="recipeSection" style="display:none;">
+        <div class="section-header" style="margin-top:48px;">
+          <h2>🍴 <span id="recipeDishTitle"></span></h2>
+          <p class="section-sub">Generated by Llama-3 · Personalised for your health conditions</p>
+        </div>
+        <div class="recipe-card" id="recipeCard">
+          <div class="recipe-content" id="recipeContent"></div>
+          <div class="recipe-actions">
+            <button class="btn-primary sm" onclick="saveCurrentRecipe()">💾 Save Recipe</button>
+            <button class="btn-ghost sm" onclick="scrollToTop()">↑ Back to Top</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════ TAB: SAVED ══════════ -->
+    <section class="tab-pane" id="tab-saved">
+      <div class="page-hero">
+        <h2>🔖 Saved Recipes</h2>
+        <p>Your personal collection of health-verified recipes</p>
+      </div>
+      <div id="savedList" class="saved-list">
+        <div class="empty-state">
+          <div class="empty-icon">🍲</div>
+          <div class="empty-title">No saved recipes yet</div>
+          <div class="empty-sub">Generate and save recipes from the Cook tab</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ TAB: HOW IT WORKS ══════════ -->
+    <section class="tab-pane" id="tab-howit">
+      <div class="page-hero">
+        <h2>🤖 How It Works</h2>
+        <p>Three layers of AI protection between your ingredients and your plate</p>
+      </div>
+
+      <div class="how-steps">
+        <div class="how-card">
+          <div class="how-num">01</div>
+          <div class="how-icon teal">🌿</div>
+          <h3>ML Safety Filter</h3>
+          <p>A <strong>Random Forest model</strong> trained on 3,000+ food items analyses Sugar, Fat, Sodium, Carbohydrates, and Cholesterol for each ingredient. It outputs a safety score of 0 (unsafe), 1 (caution), or 2 (fully safe).</p>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-card">
+          <div class="how-num">02</div>
+          <div class="how-icon amber">⚖️</div>
+          <h3>Condition Thresholds</h3>
+          <p>Each of the 8 medical conditions has <strong>strict per-nutrient limits</strong>. If you have multiple conditions, the strictest threshold for each nutrient is automatically applied. No ingredient that violates a limit reaches your recipe.</p>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-card">
+          <div class="how-num">03</div>
+          <div class="how-icon green">🍳</div>
+          <h3>Llama-3 AI Chef</h3>
+          <p>Only ML-cleared ingredients are passed to <strong>Llama-3 70B</strong>, which acts as your personal nutritionist-chef. It generates three dish suggestions, then a full recipe with cooking steps, portions, and a health explanation.</p>
+        </div>
+      </div>
+
+      <div class="arch-box">
+        <div class="arch-title">Architecture Overview</div>
+        <div class="arch-flow">
+          <div class="arch-node gray">User Input<br><small>ingredients + conditions</small></div>
+          <div class="arch-arr">→</div>
+          <div class="arch-node teal">FOOD-DATA CSV<br><small>regex ingredient match</small></div>
+          <div class="arch-arr">→</div>
+          <div class="arch-node purple">Random Forest<br><small>.pkl model inference</small></div>
+          <div class="arch-arr">→</div>
+          <div class="arch-node amber">Threshold Check<br><small>condition_thresholds.json</small></div>
+          <div class="arch-arr">→</div>
+          <div class="arch-node green">Llama-3 70B<br><small>via Groq API</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ TAB: THRESHOLDS ══════════ -->
+    <section class="tab-pane" id="tab-thresholds">
+      <div class="page-hero">
+        <h2>📊 Safety Thresholds</h2>
+        <p>Per-nutrient maximum limits per ingredient serving for each health condition</p>
+      </div>
+      <div class="table-wrap">
+        <table class="thresh-table" id="threshTable">
+          <thead>
+            <tr>
+              <th>Condition</th>
+              <th>Sugar (g)</th>
+              <th>Fat (g)</th>
+              <th>Sodium (mg)</th>
+              <th>Carbs (g)</th>
+              <th>Cholesterol (mg)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="thresh-note">
+        ℹ️ When multiple conditions are selected, CareCook automatically applies the <strong>strictest (lowest) limit</strong> across all chosen conditions for each nutrient.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- OVERLAY (mobile sidebar) -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
