@@ -6,6 +6,8 @@ from groq import Groq
 from dotenv import load_dotenv
 from model_logic import check_safety, get_safety_explanation
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,14 +16,53 @@ CORS(app)
 
 GROQ_KEY     = os.getenv("GROQ_KEY")
 UNSPLASH_KEY = os.getenv("UNSPLASH_KEY", "")
-RECIPES_FILE = "saved_recipes.json"
+RECIPES_FILE = os.path.join(BASE_DIR, "saved_recipes.json")
 
 print(f"[startup] GROQ_KEY loaded: {'YES' if GROQ_KEY else 'NO'}")
 groq_client = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
 
+def call_groq(messages):
+    """Call Groq API with fallback to supported chat completion models."""
+    if not groq_client:
+        raise ValueError("GROQ_KEY not configured")
+    
+    candidate_models = [
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.8-27b",
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+    ]
+    env_model = os.getenv("GROQ_MODEL")
+    if env_model:
+        candidate_models.insert(0, env_model)
+        
+    last_err = None
+    for model in candidate_models:
+        try:
+            res = groq_client.chat.completions.create(
+                model=model,
+                messages=messages
+            )
+            return res.choices[0].message.content
+        except Exception as e:
+            last_err = e
+            print(f"[groq fallback] Model '{model}' failed: {e}")
+            continue
+    raise last_err
+
 # ── Food data ─────────────────────────────────────────────────────────────────
 def load_food_data():
-    paths = glob.glob("data/FOOD-DATA-MASTER.csv") + glob.glob("FOOD-DATA-GROUP*.csv")
+    search_patterns = [
+        os.path.join(BASE_DIR, "data", "FOOD-DATA-MASTER.csv"),
+        os.path.join(BASE_DIR, "FOOD-DATA-GROUP*.csv"),
+        "data/FOOD-DATA-MASTER.csv",
+        "FOOD-DATA-GROUP*.csv"
+    ]
+    paths = []
+    for pat in search_patterns:
+        paths.extend(glob.glob(pat))
+    paths = list(dict.fromkeys(paths))
     if not paths:
         return pd.DataFrame()
     df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
@@ -122,7 +163,7 @@ def analyse_ingredients(ingredient_str, condition):
                 "score": 0, "label": "unsafe",
                 "explanation": f"Medically unsafe for {ban_cond} — should be completely avoided"
             })
-            print(f"[analyse] '{item}' → BANNED for {ban_cond}")
+            print(f"[analyse] '{item}' -> BANNED for {ban_cond}")
             continue
 
         matched = None
@@ -147,13 +188,13 @@ def analyse_ingredients(ingredient_str, condition):
                 "label":        "safe" if score >= 2 else "caution" if score == 1 else "unsafe",
                 "explanation":  explanation,
             }
-            print(f"[analyse] '{item}' → '{matched.get('food')}' fat={nutrition['fat']:.1f} sodium={nutrition['sodium']:.0f} score={score}")
+            print(f"[analyse] '{item}' -> '{matched.get('food')}' fat={nutrition['fat']:.1f} sodium={nutrition['sodium']:.0f} score={score}")
             if score >= 1:
                 safe.append(row)
             else:
                 removed.append(row)
         else:
-            print(f"[analyse] '{item}' → not in DB, assumed safe")
+            print(f"[analyse] '{item}' -> not in DB, assumed safe")
             safe.append({
                 "name": item, "matched_food": None, "nutrition": {},
                 "score": 2, "label": "safe", "explanation": "Not found in DB — assumed safe"
@@ -273,11 +314,7 @@ DISHES:
 2. Dish Name (Safe because: [specific medical reason])
 3. Dish Name (Safe because: [specific medical reason])"""
 
-        res  = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        text = res.choices[0].message.content
+        text = call_groq([{"role": "user", "content": prompt}])
 
         recommendations, dishes = "", []
         if "DISHES:" in text:
@@ -328,11 +365,8 @@ Include:
 
 Be strict about the medical rules. If the dish name conflicts with the condition, adapt it to be safe."""
 
-        res = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return jsonify({"recipe": res.choices[0].message.content, "dish": dish_name})
+        recipe_text = call_groq([{"role": "user", "content": prompt}])
+        return jsonify({"recipe": recipe_text, "dish": dish_name})
 
     except Exception as e:
         traceback.print_exc()

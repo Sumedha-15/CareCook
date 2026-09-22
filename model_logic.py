@@ -4,9 +4,14 @@ import numpy as np
 import pandas as pd
 import os
 
-# Load Advanced Model
-MODEL_PATH = "health_safety_model_advanced.pkl"
-THRESHOLDS_PATH = "condition_thresholds.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "health_safety_model_advanced.pkl")
+if not os.path.exists(MODEL_PATH) and os.path.exists("health_safety_model_advanced.pkl"):
+    MODEL_PATH = "health_safety_model_advanced.pkl"
+
+THRESHOLDS_PATH = os.path.join(BASE_DIR, "condition_thresholds.json")
+if not os.path.exists(THRESHOLDS_PATH) and os.path.exists("condition_thresholds.json"):
+    THRESHOLDS_PATH = "condition_thresholds.json"
 
 try:
     ai_model = joblib.load(MODEL_PATH)

@@ -442,6 +442,8 @@ input::placeholder { color: var(--ink3); opacity: 0.7; }
   transition: transform 0.2s, box-shadow 0.2s;
   animation: fadeUp 0.4s ease forwards;
   opacity: 0;
+  display: flex;
+  flex-direction: column;
 }
 .dish-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
 .dish-img {
@@ -460,7 +462,12 @@ input::placeholder { color: var(--ink3); opacity: 0.7; }
   justify-content: center;
   font-size: 42px;
 }
-.dish-body { padding: 18px 18px 16px; }
+.dish-body {
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 .dish-safe-badge {
   display: inline-flex;
   align-items: center;
@@ -472,9 +479,10 @@ input::placeholder { color: var(--ink3); opacity: 0.7; }
   padding: 4px 10px;
   border-radius: 20px;
   margin-bottom: 10px;
+  align-self: flex-start;
 }
 .dish-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
-.dish-reason { font-size: 13px; color: var(--ink3); line-height: 1.5; margin-bottom: 14px; }
+.dish-reason { font-size: 13px; color: var(--ink3); line-height: 1.5; margin-bottom: 14px; flex: 1; }
 .dish-cook-btn {
   width: 100%;
   padding: 11px;
@@ -487,6 +495,7 @@ input::placeholder { color: var(--ink3); opacity: 0.7; }
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s;
+  margin-top: auto;
 }
 .dish-cook-btn:hover { background: #085C52; }
 .dish-cook-btn:disabled { background: var(--ink3); cursor: not-allowed; }

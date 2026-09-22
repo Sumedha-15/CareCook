@@ -199,9 +199,14 @@ function renderDishes(dishes, recommendations) {
     card.className = 'dish-card';
     card.style.animationDelay = `${idx * 0.1 + 0.1}s`;
 
-    const rawName   = dish.replace(/^\d+\.\s*/, '');
-    const cleanName = rawName.split('(')[0].trim();
-    const reason    = rawName.includes('(') ? rawName.split('(')[1].replace(')', '').trim() : '';
+    let raw = dish.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
+    let cleanName = raw;
+    let reason = '';
+    if (raw.includes('(')) {
+      const idxParen = raw.indexOf('(');
+      cleanName = raw.substring(0, idxParen).trim();
+      reason = raw.substring(idxParen + 1).replace(/\)+$/, '').trim();
+    }
 
     // Lazy-load image
     const imgId = `dishImg_${idx}`;
